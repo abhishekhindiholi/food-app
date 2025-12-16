@@ -35,6 +35,13 @@ app.use("/api/v1/restaurant", restaurantRoute);
 app.use("/api/v1/menu", menuRoute);
 app.use("/api/v1/order", orderRoute);
 
+
+app.get("/", (_req, res) => {
+  console.log("Root endpoint hit – server is up and running");
+  res.status(200).send("🚀 Server is up and running");
+});
+
+
 const clientDist = path.join(BASE_DIR, "client", "dist");
 app.use(express.static(clientDist));
 
