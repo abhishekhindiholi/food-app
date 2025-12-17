@@ -25,7 +25,7 @@ app.use(cookieParser());
 
 app.use(
   cors({
-    origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://192.168.26.1:5173", "http://192.168.26.1:5174", "http://192.168.26.1:5175"],
+    origin: ["http://localhost:5173", "http://localhost:5174", "http://localhost:5175", "http://192.168.26.1:5173", "http://192.168.26.1:5174", "http://192.168.26.1:5175", "https://beautiful-mandazi-54c802.netlify.app"],
     credentials: true,
   })
 );
