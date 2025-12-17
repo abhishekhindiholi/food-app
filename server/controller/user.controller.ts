@@ -32,13 +32,14 @@ export const signup = async (req: Request, res: Response) => {
             verificationTokenExpiresAt: Date.now() + 24 * 60 * 60 * 1000,
             isVerified: true,
         })
-        generateToken(res,user);
+        const token = generateToken(user);
 
         const userWithoutPassword = await User.findOne({ email }).select("-password");
         return res.status(201).json({
             success: true,
             message: "Account created successfully",
-            user: userWithoutPassword
+            user: userWithoutPassword,
+            token
         });
     } catch (error) {
         console.log(error);
@@ -62,7 +63,7 @@ export const login = async (req: Request, res: Response) => {
                 message: "Incorrect email or password"
             });
         }
-        generateToken(res, user);
+        const token = generateToken(user);
         user.lastLogin = new Date();
         await user.save();
 
@@ -70,7 +71,8 @@ export const login = async (req: Request, res: Response) => {
         return res.status(200).json({
             success: true,
             message: `Welcome back ${user.fullName}`,
-            user: userWithoutPassword
+            user: userWithoutPassword,
+            token
         });
     } catch (error) {
         console.log(error);

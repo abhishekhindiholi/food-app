@@ -3,8 +3,9 @@ import { toast } from "sonner";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
 import { useRestaurantStore } from "./useRestaurantStore";
+import { useUserStore } from "./useUserStore";
 
-const API_END_POINT = "https://food-app-self-six.vercel.app/api/v1/menu";
+const API_END_POINT = "http://localhost:8000/api/v1/menu";
 axios.defaults.withCredentials = true;
 
 type MenuState = {
@@ -21,9 +22,11 @@ export const useMenuStore = create<MenuState>()(persist((set) => ({
     createMenu: async (formData: FormData) => {
         try {
             set({ loading: true });
+            const token = useUserStore.getState().token;
             const response = await axios.post(`${API_END_POINT}/`, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
+                    token: token
                 }
             });
             if (response.data.success) {
@@ -39,9 +42,11 @@ export const useMenuStore = create<MenuState>()(persist((set) => ({
     editMenu: async (menuId:string,formData: FormData) => {
         try {
             set({ loading: true });
+            const token = useUserStore.getState().token;
             const response = await axios.put(`${API_END_POINT}/${menuId}`, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
+                    token: token
                 }
             });
             if(response.data.success){
@@ -57,7 +62,12 @@ export const useMenuStore = create<MenuState>()(persist((set) => ({
     deleteMenu: async (menuId:string) => {
         try {
             set({ loading: true });
-            const response = await axios.delete(`${API_END_POINT}/${menuId}`);
+            const token = useUserStore.getState().token;
+            const response = await axios.delete(`${API_END_POINT}/${menuId}`, {
+                headers: {
+                    token: token
+                }
+            });
             if(response.data.success){
              toast.success(response.data.message);
              set({loading:false});

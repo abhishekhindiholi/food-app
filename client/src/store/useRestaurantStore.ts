@@ -4,8 +4,9 @@ import axios from "axios";
 import { toast } from "sonner";
 import { create } from "zustand";
 import { createJSONStorage, persist } from "zustand/middleware";
+import { useUserStore } from "./useUserStore";
 
-const API_END_POINT = "https://food-app-self-six.vercel.app/api/v1/restaurant";
+const API_END_POINT = "http://localhost:8000/api/v1/restaurant";
 axios.defaults.withCredentials = true;
 
 
@@ -19,9 +20,11 @@ export const useRestaurantStore = create<RestaurantState>()(persist((set, get) =
     createRestaurant: async (formData: FormData) => {
         try {
             set({ loading: true });
+            const token = useUserStore.getState().token;
             const response = await axios.post(`${API_END_POINT}/`, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
+                    token: token
                 }
             });
             if (response.data.success) {
@@ -36,7 +39,12 @@ export const useRestaurantStore = create<RestaurantState>()(persist((set, get) =
     getRestaurant: async () => {
         try {
             set({ loading: true });
-            const response = await axios.get(`${API_END_POINT}/`);
+            const token = useUserStore.getState().token;
+            const response = await axios.get(`${API_END_POINT}/`, {
+                headers: {
+                    token: token
+                }
+            });
             if (response.data.success) {
                 set({ loading: false, restaurant: response.data.restaurant });
             }
@@ -50,9 +58,11 @@ export const useRestaurantStore = create<RestaurantState>()(persist((set, get) =
     updateRestaurant: async (formData: FormData) => {
         try {
             set({ loading: true });
+            const token = useUserStore.getState().token;
             const response = await axios.put(`${API_END_POINT}/`, formData, {
                 headers: {
-                    'Content-Type': 'multipart/form-data'
+                    'Content-Type': 'multipart/form-data',
+                    token: token
                 }
             });
             if (response.data.success) {
@@ -67,12 +77,17 @@ export const useRestaurantStore = create<RestaurantState>()(persist((set, get) =
     searchRestaurant: async (searchText: string, searchQuery: string, selectedCuisines: any) => {
         try {
             set({ loading: true });
+            const token = useUserStore.getState().token;
 
             const params = new URLSearchParams();
             params.set("searchQuery", searchQuery);
             params.set("selectedCuisines", selectedCuisines.join(","));
 
-            const response = await axios.get(`${API_END_POINT}/search/${searchText}?${params.toString()}`);
+            const response = await axios.get(`${API_END_POINT}/search/${searchText}?${params.toString()}`, {
+                headers: {
+                    token: token
+                }
+            });
             if (response.data.success) {
                 set({ loading: false, searchedRestaurant: response.data });
             }
@@ -128,7 +143,12 @@ export const useRestaurantStore = create<RestaurantState>()(persist((set, get) =
     },
     getRestaurantOrders: async () => {
         try {
-            const response = await axios.get(`${API_END_POINT}/order`);
+            const token = useUserStore.getState().token;
+            const response = await axios.get(`${API_END_POINT}/order`, {
+                headers: {
+                    token: token
+                }
+            });
             if (response.data.success) {
                 set({ restaurantOrder: response.data.orders });
             }
@@ -138,9 +158,11 @@ export const useRestaurantStore = create<RestaurantState>()(persist((set, get) =
     },
     updateRestaurantOrder: async (orderId: string, status: string) => {
         try {
+            const token = useUserStore.getState().token;
             const response = await axios.put(`${API_END_POINT}/order/${orderId}/status`, { status }, {
                 headers: {
-                    'Content-Type': 'application/json'
+                    'Content-Type': 'application/json',
+                    token: token
                 }
             });
             if (response.data.success) {

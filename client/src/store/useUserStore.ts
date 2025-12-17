@@ -19,26 +19,28 @@ interface User {
 
 interface UserStore {
   user: User | null;
+  token: string | null;
   isAuthenticated: boolean;
   isCheckingAuth: boolean;
   loading: boolean;
   signup: (input: SignupInputState) => Promise<void>;
   login: (input: LoginInputState) => Promise<void>;
   checkAuthentication: () => Promise<void>;
-  logout: () => Promise<void>;
+  logout: () => void;
   forgotPassword: (email: string) => Promise<void>;
   resetPassword: (token: string, newPassword: string) => Promise<void>;
   updateProfile: (input: unknown) => Promise<void>;
 }
 
-const API_END_POINT = "https://food-app-self-six.vercel.app/api/v1/user";
+const API_END_POINT = "http://localhost:8000/api/v1/user";
 axios.defaults.withCredentials = true;
 
 
 export const useUserStore = create<UserStore>()(
   persist(
-    (set) => ({
+    (set, get) => ({
       user: null,
+      token: null,
       isAuthenticated: false,
       isCheckingAuth: true,
       loading: false,
@@ -55,6 +57,7 @@ export const useUserStore = create<UserStore>()(
             set({
               loading: false,
               user: response.data.user,
+              token: response.data.token,
               isAuthenticated: true,
             });
           }
@@ -76,6 +79,7 @@ export const useUserStore = create<UserStore>()(
             set({
               loading: false,
               user: response.data.user,
+              token: response.data.token,
               isAuthenticated: true,
             });
             useCartStore.getState().clearCart();
@@ -90,7 +94,12 @@ export const useUserStore = create<UserStore>()(
       checkAuthentication: async () => {
         try {
           set({ isCheckingAuth: true });
-          const response = await axios.get(`${API_END_POINT}/check-auth`);
+          const token = get().token;
+          const response = await axios.get(`${API_END_POINT}/check-auth`, {
+            headers: {
+              token: token,
+            },
+          });
           if (response.data.success) {
             set({
               user: response.data.user,
@@ -102,19 +111,10 @@ export const useUserStore = create<UserStore>()(
           set({ isAuthenticated: false, isCheckingAuth: false });
         }
       },
-      logout: async () => {
-        try {
-          set({ loading: true });
-          const response = await axios.post(`${API_END_POINT}/logout`);
-          if (response.data.success) {
-            toast.success(response.data.message);
-            set({ loading: false, user: null, isAuthenticated: false });
-            useCartStore.getState().clearCart();
-          }
-        } catch (error: any) {
-          toast.error(error.response.data.message);
-          set({ loading: false });
-        }
+      logout: () => {
+        toast.success("Logged out successfully");
+        set({ user: null, token: null, isAuthenticated: false });
+        useCartStore.getState().clearCart();
       },
       forgotPassword: async (email: string) => {
         try {
@@ -150,12 +150,14 @@ export const useUserStore = create<UserStore>()(
       },
       updateProfile: async (input: unknown) => {
         try {
+          const token = get().token;
           const response = await axios.put(
             `${API_END_POINT}/profile/update`,
             input,
             {
               headers: {
                 "Content-Type": "application/json",
+                token: token,
               },
             }
           );
